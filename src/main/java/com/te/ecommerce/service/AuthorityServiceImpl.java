@@ -3,6 +3,8 @@ package com.te.ecommerce.service;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,6 @@ import com.te.ecommerce.dto.SalesOrderId;
 import com.te.ecommerce.entity.Customer;
 import com.te.ecommerce.entity.Product;
 import com.te.ecommerce.entity.SalesOrder;
-import com.te.ecommerce.exceptions.CustomerException;
 import com.te.ecommerce.exceptions.ProductException;
 import com.te.ecommerce.exceptions.ProductNotFoundException;
 import com.te.ecommerce.exceptions.SalesOrderException;
@@ -43,6 +44,7 @@ public class AuthorityServiceImpl implements AuthorityService {
 		Product product = new Product();
 		BeanUtils.copyProperties(addProduct, product);
 		productRepository.save(product);
+
 		return addProduct;
 	}
 
@@ -73,26 +75,8 @@ public class AuthorityServiceImpl implements AuthorityService {
 		Product presentProduct = productRepository.findById(product.getId()).orElseThrow(ProductNotFoundException::new);
 		if (presentProduct != null) {
 			productRepository.save(product);
-//			if (presentProduct.getId().equals(productDto.getId())) {
-//				if (productDto.getManufacturer() != null && !productDto.getManufacturer().isEmpty())
-//					presentProduct.setManufacturer(productDto.getManufacturer());
-//				if (productDto.getCategory() != null && !productDto.getCategory().isEmpty())
-//					presentProduct.setCategory(productDto.getCategory());
-//				if (productDto.getDescription() != null && !productDto.getDescription().isEmpty())
-//					presentProduct.setDescription(productDto.getDescription());
-//				if (productDto.getName() != null && !productDto.getName().isEmpty())
-//					presentProduct.setName(productDto.getName());
-//				if (productDto.getPrice().doubleValue()!=0)
-//					presentProduct.setPrice(productDto.getPrice());
-//				if (productDto.getUnit().intValue()!=0)
-//					presentProduct.setUnit(productDto.getUnit());
-
-//				productRepository.save(presentProduct);
 			return productDto;
 
-//			}else {
-//				return null;
-//			}
 		} else {
 			throw new ProductException("Updating product unsucessfull");
 		}
@@ -121,15 +105,10 @@ public class AuthorityServiceImpl implements AuthorityService {
 
 //	Find the Customer
 	@Override
-	public Optional<Customer> customerDetails(FindCustomer findCustomer) {
+	public Optional<Customer> customerDetails(@NotNull FindCustomer findCustomer) {
 		Customer customer = new Customer();
 		BeanUtils.copyProperties(findCustomer, customer);
-		Optional<Customer> customerById = customerRepository.findById(customer.getId());
-		if (customerById != null) {
-			return customerById;
-		} else {
-			throw new CustomerException("customer details not found");
-		}
-	}
+		return customerRepository.findById(customer.getId());
 
+	}
 }

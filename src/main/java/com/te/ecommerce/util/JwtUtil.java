@@ -3,51 +3,59 @@ package com.te.ecommerce.util;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 @Component
 public class JwtUtil {
 
-	@Value("${app.secret}")
-	private String secret;
+//	@Value("${app.secret}")
+	private String secret = "hulk";
 
-//	Generating token
+	/* 1. Method for token generation! */
 	public String generateToken(String subject) {
-		return Jwts.builder().setSubject(subject).setIssuer("MeHulk").setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)))
-				.signWith(SignatureAlgorithm.HS512, secret.getBytes()).compact();
+		JwtBuilder builder = Jwts.builder();
+		builder.setSubject(subject);
+		builder.setIssuer("MeHulk");
+		builder.setIssuedAt(new Date(System.currentTimeMillis()));
+		builder.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)));
+		builder.signWith(SignatureAlgorithm.HS256, secret.getBytes());
+		return builder.compact();
 	}
 
-//	Read claims
+	/* 2. Method for reading claims! */
 	public Claims getClaims(String token) {
-		return Jwts.parser().setSigningKey(secret.getBytes()).parseClaimsJws(token).getBody();
+		JwtParser parser = Jwts.parser();
+		parser.setSigningKey(secret.getBytes());
+		Jws<Claims> parseClaimsJws = parser.parseClaimsJws(token);
+		return parseClaimsJws.getBody();
 	}
 
-//	to reas username
+	/* 3. Method to get expiration date! */
+	public Date getExpirationDate(String token) {
+		return getClaims(token).getExpiration();
+	}
+
+	/* 4. Method to get subject user name! */
 	public String getUsername(String token) {
 		return getClaims(token).getSubject();
 	}
 
-//	to read expiry date
-	public Date getExpDate(String token) {
-		return getClaims(token).getExpiration();
+	/* 5. Check if the token is expired! */
+	public boolean isTokenExpired(String token) {
+		Date expirationDate = getExpirationDate(token);
+		return expirationDate.before(new Date(System.currentTimeMillis()));
 	}
 
-//	validate exp date
-	public boolean isTokenExp(String token) {
-		Date expDate = getExpDate(token);
-		return expDate.before(new Date(System.currentTimeMillis()));
-
-	}
-
-//	validate user in token and database, expDate
+	/* 6. Method to validate a token! */
 	public boolean validateToken(String token, String username) {
-		String tokenUsername = getUsername(token);
-		return (username.equals(tokenUsername) && !isTokenExp(token));
+		String usernameFromToken = getUsername(token);
+		return username.equals(usernameFromToken) && !isTokenExpired(token);
 	}
 }

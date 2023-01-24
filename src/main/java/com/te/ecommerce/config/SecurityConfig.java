@@ -1,8 +1,6 @@
-package com.te.ecommerce.config;
+	package com.te.ecommerce.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,26 +9,26 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.te.ecommerce.filter.SecurityFilter;
 
+import lombok.RequiredArgsConstructor;
+
 @EnableWebSecurity
-@Configuration
+@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-	@Autowired
-	private UserDetailsService userDetailsService;
+	private final UserDetailsService userDetailsService;
+	private final PasswordEncoder passwordEncoder;
+	private final SecurityFilter securityFilter;
+	private final InvalidUserAuthEntryPoint invalidUserAuthEntryPoint;
 
-	@Autowired
-	private BCryptPasswordEncoder passwordEncoder;
+	
 
-	@Autowired
-	private InvalidUserAuthEntryPoint invalidUserAuthEntryPoint;
-
-	@Autowired
-	private SecurityFilter securityFilter;
+	private static final String CUSTOMER = "CUSTOMER";
+	private static final String ADMIN = "ADMIN";
 
 	@Override
 	@Bean
@@ -45,13 +43,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.csrf().disable()
-			.authorizeRequests()
-			.antMatchers("/abc/registerUser/", "/user/login/well/").permitAll()	
-			.and()
-			.exceptionHandling().authenticationEntryPoint(invalidUserAuthEntryPoint).and().sessionManagement()
-			.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-			.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+		http.csrf().disable();
+		http.cors().disable();
+		   http.authorizeRequests().antMatchers("/customer/**"); //customer 
+		  http.authorizeRequests().antMatchers("/authority/**"); //admin authorization
+		   http.authorizeRequests().antMatchers("/cust/**").permitAll(); //register
+		   http.authorizeRequests().antMatchers("/user/**").permitAll().anyRequest().
+		  authenticated(); //login
+		 		
+		
+		
+		http.exceptionHandling().authenticationEntryPoint(invalidUserAuthEntryPoint).and().sessionManagement();
+		
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		
+		http.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
 	}
 

@@ -3,10 +3,9 @@ package com.te.ecommerce.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.te.ecommerce.entity.BillingAddress;
+import com.te.ecommerce.entity.Authority;
 
 @Repository
-public interface BillingAddressRepository extends JpaRepository<BillingAddress, Integer> {
-	
+public interface AuthorityRepository extends JpaRepository<Authority, Integer>{
 
 }

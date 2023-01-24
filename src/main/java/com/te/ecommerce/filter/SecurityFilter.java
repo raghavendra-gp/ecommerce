@@ -18,43 +18,49 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.te.ecommerce.util.JwtUtil;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
-	
+
 	@Autowired
 	private JwtUtil util;
-	
+
 	@Autowired
 	private UserDetailsService userDetailsService;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		
-		
-//		Readable token from authorization header
-		String token = request.getHeader("Authorization");
-		if (token!=null) {
-			//validation
-			String username = util.getUsername(token);
-//			username should not be empty and context holder should be empty
-			if (username!=null && SecurityContextHolder.getContext().getAuthentication()==null) {
-				UserDetails loadUser = userDetailsService.loadUserByUsername(username);
-				
-				boolean isValidateToken = util.validateToken(token, loadUser.getUsername());
-				
-				if (isValidateToken) {
-					UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, loadUser.getPassword());
-					
-					authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-					
-//					final object stored in Securtiy context with User Details(usrname, pwd)
-					SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-					
+
+		if (request.getServletPath().equalsIgnoreCase(null)) {
+
+			filterChain.doFilter(request, response);
+
+		} else {
+			String bearerToken = request.getHeader("Authorization");
+			if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+				String token = bearerToken.substring(7);
+
+				String usernameFromToken = util.getUsername(token);
+				UserDetails userFromDb = userDetailsService.loadUserByUsername(usernameFromToken);
+				if (usernameFromToken != null && userFromDb.getUsername() != null
+						&& SecurityContextHolder.getContext().getAuthentication() == null) {
+					if (util.validateToken(token, userFromDb.getUsername())) {
+
+						UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+								userFromDb.getUsername(), userFromDb.getPassword(), userFromDb.getAuthorities());
+
+						authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+						SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+					}
 				}
 			}
-		}  
-		filterChain.doFilter(request, response);
+			filterChain.doFilter(request, response);
+		}
+
 	}
 
 }

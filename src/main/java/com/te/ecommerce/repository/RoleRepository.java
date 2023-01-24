@@ -5,11 +5,11 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.te.ecommerce.entity.User;
+import com.te.ecommerce.entity.Roles;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface RoleRepository extends JpaRepository<Roles, Integer> {
 
-	Optional<User> findByUserName(String username);
+	Optional<Roles> findByRoleName(String string);
 
 }

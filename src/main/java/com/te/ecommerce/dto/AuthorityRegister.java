@@ -1,8 +1,7 @@
 package com.te.ecommerce.dto;
 
-import javax.validation.constraints.NotNull;
-
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,9 +10,11 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeleteShippingAddress {
-	
-	@NotNull(message = "id is must")
-	private Integer id;
+@Builder
+public class AuthorityRegister {
 
+	private String emailid;
+	private String password;
+	private String userName;
+	private String roles;
 }

@@ -1,14 +1,12 @@
-package com.te.ecommerce.service;
+	package com.te.ecommerce.service;
 
 import java.util.ArrayList;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.te.ecommerce.dto.BillingAddressDto;
@@ -16,7 +14,6 @@ import com.te.ecommerce.dto.CartItemDto;
 import com.te.ecommerce.dto.CustomerRegistration;
 import com.te.ecommerce.dto.DeleteBillingAddress;
 import com.te.ecommerce.dto.DeleteShippingAddress;
-import com.te.ecommerce.dto.ProductDto;
 import com.te.ecommerce.dto.ProductOrder;
 import com.te.ecommerce.dto.SearchByCategory;
 import com.te.ecommerce.dto.SearchByName;
@@ -28,6 +25,7 @@ import com.te.ecommerce.entity.Cart;
 import com.te.ecommerce.entity.CartItem;
 import com.te.ecommerce.entity.Customer;
 import com.te.ecommerce.entity.Product;
+import com.te.ecommerce.entity.SalesOrder;
 import com.te.ecommerce.entity.ShippingAddress;
 import com.te.ecommerce.entity.User;
 import com.te.ecommerce.exceptions.AddressException;
@@ -41,6 +39,7 @@ import com.te.ecommerce.repository.CartItemRepository;
 import com.te.ecommerce.repository.CartRepository;
 import com.te.ecommerce.repository.CustomerRepository;
 import com.te.ecommerce.repository.ProductRepository;
+import com.te.ecommerce.repository.SalesOrderRepository;
 import com.te.ecommerce.repository.ShippingAddressRepository;
 
 @Service
@@ -64,17 +63,18 @@ public class CustomerServiceImpl implements CustomerService {
 	@Autowired
 	private CartItemRepository cartItemRepository;
 
+	@Autowired
+	private SalesOrderRepository salesOrderRepository;
+
 	@Override
 	public CustomerRegistration registerCustomer(CustomerRegistration registerCustomer) {
 		User user = new User();
 		user.setEmailid(registerCustomer.getEmailid());
-//		user.setPassword(new BCryptPasswordEncoder().encode(registerCustomer.getPassword()));
 		Customer customer = new Customer();
 		customer.setUser(user);
 		BeanUtils.copyProperties(registerCustomer, customer);
 		customerRepository.save(customer);
-	
-		
+
 		registerCustomer.setFirstName(customer.getFirstName());
 		registerCustomer.setLastName(customer.getLastName());
 		return registerCustomer;
@@ -82,12 +82,12 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Searching a product Based on the category
 	@Override
-	public List<ProductDto> searchCategory(SearchByCategory searchByCategory) {
+	public List<Product> searchCategory(SearchByCategory searchByCategory) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByCategory, product);
 //		customerRepository.fin
 //		List<ProductDto> allProductsOnCategory = customerRepository.findAllByCategory(product.getCategory());
-		List<ProductDto> allByCategory = productRepository.findAllByCategory(product.getCategory());
+		List<Product> allByCategory = productRepository.findAllByCategory(product.getCategory());
 		if (allByCategory != null) {
 			return allByCategory;
 		} else {
@@ -97,10 +97,10 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Searching a product Based on the name
 	@Override
-	public List<ProductDto> searchName(SearchByName searchByName) {
+	public List<Product> searchName(SearchByName searchByName) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByName, product);
-		List<ProductDto> allByName = productRepository.findAllByName(product.getName());
+		List<Product> allByName = productRepository.findAllByName(product.getName());
 //		List<ProductDto> allByName = productRepository.findByName(product.getName());
 //		List<ProductDto> findAll = productRepository.findAll(product.getName());
 		if (allByName != null) {
@@ -113,11 +113,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Sort the Products based on category the price (Low To High)
 	@Override
-	public List<ProductDto> sortByPriceLowToHigh(SearchByCategory searchByCategory) {
+	public List<Product> sortByPriceLowToHigh(SearchByCategory searchByCategory) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByCategory, product);
-		List<ProductDto> allProductsOnCategory = productRepository.findAllByCategory(product.getCategory());
-		List<ProductDto> allProductsOnCategoryPriceAscending = allProductsOnCategory.stream()
+		List<Product> allProductsOnCategory = productRepository.findAllByCategory(product.getCategory());
+		List<Product> allProductsOnCategoryPriceAscending = allProductsOnCategory.stream()
 				.sorted((o1, o2) -> (int) (o1.getPrice() - o2.getPrice())).collect(Collectors.toList());
 		if (allProductsOnCategoryPriceAscending != null) {
 			return allProductsOnCategoryPriceAscending;
@@ -128,11 +128,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Sort the Products based on category the price (High To Low)
 	@Override
-	public List<ProductDto> sortByPriceHighToLow(SearchByCategory searchByCategory) {
+	public List<Product> sortByPriceHighToLow(SearchByCategory searchByCategory) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByCategory, product);
-		List<ProductDto> allProductsOnCategory = productRepository.findAllByCategory(product.getCategory());
-		List<ProductDto> allProductsOnCategoryPriceDescending = allProductsOnCategory.stream()
+		List<Product> allProductsOnCategory = productRepository.findAllByCategory(product.getCategory());
+		List<Product> allProductsOnCategoryPriceDescending = allProductsOnCategory.stream()
 				.sorted((o1, o2) -> (int) (o2.getPrice() - o1.getPrice())).collect(Collectors.toList());
 		if (allProductsOnCategoryPriceDescending != null) {
 			return allProductsOnCategoryPriceDescending;
@@ -143,11 +143,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Sort the Products based on Name the price (Low To High)
 	@Override
-	public List<ProductDto> sortByNamePriceLowToHigh(SearchByName searchByName) {
+	public List<Product> sortByNamePriceLowToHigh(SearchByName searchByName) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByName, product);
-		List<ProductDto> allProductOnName = productRepository.findByName(product.getName());
-		List<ProductDto> allProductsOnNamePriceAscending = allProductOnName.stream()
+		List<Product> allProductOnName = productRepository.findByName(product.getName());
+		List<Product> allProductsOnNamePriceAscending = allProductOnName.stream()
 				.sorted((o1, o2) -> (int) (o1.getPrice() - o2.getPrice())).collect(Collectors.toList());
 		if (allProductsOnNamePriceAscending != null) {
 			return allProductsOnNamePriceAscending;
@@ -158,11 +158,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Sort the Products based on Name the price (High To Low)
 	@Override
-	public List<ProductDto> sortByNamePriceHighToLow(SearchByName searchByName) {
+	public List<Product> sortByNamePriceHighToLow(SearchByName searchByName) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByName, product);
-		List<ProductDto> allProductOnName = productRepository.findByName(product.getName());
-		List<ProductDto> allProductsOnNamePriceDescending = allProductOnName.stream()
+		List<Product> allProductOnName = productRepository.findByName(product.getName());
+		List<Product> allProductsOnNamePriceDescending = allProductOnName.stream()
 				.sorted((o1, o2) -> (int) (o2.getPrice() - o1.getPrice())).collect(Collectors.toList());
 		if (allProductsOnNamePriceDescending != null) {
 			return allProductsOnNamePriceDescending;
@@ -173,12 +173,14 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Sort the Products based on Category alphabetically (a-z)
 	@Override
-	public List<ProductDto> sortCategoryAlphabetAscending(SearchByCategory searchByCategory) {
+	public List<Product> sortCategoryAlphabetAscending(SearchByCategory searchByCategory) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByCategory, product);
-		List<ProductDto> allProductsOnCategory = productRepository.findAllByCategory(product.getCategory());
-		List<ProductDto> sortCategoryAlphabetAscending = allProductsOnCategory.stream()
+		List<Product> allProductsOnCategory = productRepository.findAllByCategory(product.getCategory());
+
+		List<Product> sortCategoryAlphabetAscending = allProductsOnCategory.stream()
 				.sorted((o1, o2) -> o1.getCategory().compareTo(o2.getCategory())).collect(Collectors.toList());
+
 		if (sortCategoryAlphabetAscending != null) {
 			return sortCategoryAlphabetAscending;
 		} else {
@@ -188,11 +190,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Sort the Products based on Category alphabetically (z-a)
 	@Override
-	public List<ProductDto> sortCategoryAlphabetDescending(SearchByCategory searchByCategory) {
+	public List<Product> sortCategoryAlphabetDescending(SearchByCategory searchByCategory) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByCategory, product);
-		List<ProductDto> allProductsOnCategory = productRepository.findAllByCategory(product.getCategory());
-		List<ProductDto> sortCategoryAlphabetDescending = allProductsOnCategory.stream()
+		List<Product> allProductsOnCategory = productRepository.findAllByCategory(product.getCategory());
+		List<Product> sortCategoryAlphabetDescending = allProductsOnCategory.stream()
 				.sorted((o1, o2) -> o2.getCategory().compareTo(o1.getCategory())).collect(Collectors.toList());
 		if (sortCategoryAlphabetDescending != null) {
 			return sortCategoryAlphabetDescending;
@@ -203,11 +205,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Sort the Products based on Name alphabetically (a-z)
 	@Override
-	public List<ProductDto> sortNameAlphabetAscending(SearchByName searchByName) {
+	public List<Product> sortNameAlphabetAscending(SearchByName searchByName) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByName, product);
-		List<ProductDto> allProductOnName = productRepository.findByName(product.getName());
-		List<ProductDto> sortNameAlphabetAscending = allProductOnName.stream()
+		List<Product> allProductOnName = productRepository.findByName(product.getName());
+		List<Product> sortNameAlphabetAscending = allProductOnName.stream()
 				.sorted((o1, o2) -> o1.getName().compareTo(o2.getName())).collect(Collectors.toList());
 		if (sortNameAlphabetAscending != null) {
 			return sortNameAlphabetAscending;
@@ -218,11 +220,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Sort the Products based on Name alphabetically (z-a)
 	@Override
-	public List<ProductDto> sortNameAlphabetDescending(SearchByName searchByName) {
+	public List<Product> sortNameAlphabetDescending(SearchByName searchByName) {
 		Product product = new Product();
 		BeanUtils.copyProperties(searchByName, product);
-		List<ProductDto> allProductOnName = productRepository.findByName(product.getName());
-		List<ProductDto> sortNameAlphabetDescending = allProductOnName.stream()
+		List<Product> allProductOnName = productRepository.findByName(product.getName());
+		List<Product> sortNameAlphabetDescending = allProductOnName.stream()
 				.sorted((o1, o2) -> o2.getName().compareTo(o1.getName())).collect(Collectors.toList());
 		if (sortNameAlphabetDescending != null) {
 			return sortNameAlphabetDescending;
@@ -236,7 +238,7 @@ public class CustomerServiceImpl implements CustomerService {
 	public BillingAddressDto billingAddress(BillingAddressDto addressDto, Integer id) {
 		Customer customer = new Customer();
 		customer.setId(id);
-		Customer customerDet = customerRepository.findById(customer.getId()).orElse(null);
+		Customer customerDet = customerRepository.findById(customer.getId()).orElseThrow(CustomerException::new);
 
 		if (customerDet != null) {
 
@@ -315,7 +317,6 @@ public class CustomerServiceImpl implements CustomerService {
 			ShippingAddress saveShippingAddress = shippingAddressRepository.save(shippingAddress);
 
 			customerDet.setShippingAddress(saveShippingAddress);
-
 			customerRepository.save(customerDet);
 
 			if (saveShippingAddress != null) {
@@ -371,11 +372,11 @@ public class CustomerServiceImpl implements CustomerService {
 	@Override
 	public List<Object> allAddresses(Integer id) {
 
-		List<Object> addressList = new ArrayList<Object>();
+		List<Object> addressList = new ArrayList<>();
 		Customer customer = new Customer();
 		customer.setId(id);
 
-		Customer customerDet = customerRepository.findById(customer.getId()).orElse(customer);
+		Customer customerDet = customerRepository.findById(customer.getId()).orElseThrow(CustomerException::new);
 		if (customerDet != null) {
 
 			BillingAddress billAddress = customerDet.getBillingAddress();
@@ -400,34 +401,32 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Adding item to the Cart
 	@Override
-	public CartItemDto addToCart(Integer id, ProductOrder productOrder, Integer productUnit) {
+	public CartItemDto addToCart(ProductOrder productOrder) {
 
 		CartItem cartItem = new CartItem();
+		
+		Optional<Product> findById = productRepository.findById(productOrder.getId());
+		Product prod = findById.get();
 
 //		setting quantity of cartItem
-		cartItem.setQuantity(productUnit);
+		cartItem.setQuantity(productOrder.getQuantity());
 
 //		setting price of cartItem
-		cartItem.setPrice(productOrder.getPrice());
+		cartItem.setPrice(prod.getPrice());
 
 //		copying from dto to entity class and setting it to cartItem
 		Product product = new Product();
 		BeanUtils.copyProperties(productOrder, product);
-		
-		Product productDet = productRepository.findById(product.getId()).orElseThrow(ProductNotFoundException::new);
 
-		if (productDet != null) {
-			if (productDet.getId().equals(productOrder.getId())) {
-				cartItem.setProduct(product);
-			}
-		} else {
-			throw new ProductNotFoundException();
+//		Product productDet = productRepository.findById(product.getId()).orElseThrow(ProductNotFoundException::new);
+
+		if (prod.getId().equals(productOrder.getId())) {
+			cartItem.setProduct(product);
 		}
 
-		
 //		Calculating the total price
-		Double price = productOrder.getPrice();
-		Double orderQuantity = Double.valueOf(productUnit);
+		Double price = prod.getPrice();
+		Double orderQuantity = Double.valueOf(productOrder.getQuantity());
 
 		Double total = orderQuantity * price;
 
@@ -438,22 +437,29 @@ public class CustomerServiceImpl implements CustomerService {
 		if (savedPrice != null) {
 //			setting it to cartItem
 			cartItem.setCart(savedPrice);
-			
+
 //			setting cart id to customer
 			Customer customer = new Customer();
-			customer.setId(id);
+			customer.setId(productOrder.getCustId());
 			Customer customerDet = customerRepository.findById(customer.getId()).orElse(null);
-			if (customerDet != null) {
+
+//			saving cart to salesorder
+			SalesOrder salesOrder = new SalesOrder();
+			salesOrder.setBillingAddress(customerDet.getBillingAddress());
+			salesOrder.setShippingAddress(customerDet.getShippingAddress());
+			salesOrder.setCart(cart);
+
+//			if (customerDet != null) {
 				customerDet.setCart(savedPrice);
+				salesOrder.setCustomer(customerDet);
 				customerRepository.save(customerDet);
-			} else {
-				throw new CustomerException("customer not found");
-			}
+				salesOrderRepository.save(salesOrder);
+//			} else {
+//				throw new CustomerException("customer not found");
+//			}
 		} else {
 			throw new CartItemException("No product in cart");
 		}
-
-
 
 //		finally saving the cartItem
 		CartItem savedCartItem = cartItemRepository.save(cartItem);
@@ -465,6 +471,23 @@ public class CustomerServiceImpl implements CustomerService {
 			throw new CartItemException("Nothing in cart");
 		}
 
+	}
+
+//	getting the cartItem details
+	@Override
+	public Optional<CartItem> cartDetails(Integer id) {
+		return cartItemRepository.findById(id);
+
+	}
+
+	@Override
+	public Double cartPrice(Integer id) {
+
+		Optional<Customer> custDet = customerRepository.findById(id);
+		Customer customer = custDet.get();
+		return customer.getCart().getTotalPrice();
+//		Cart cart = new Cart();
+//		return custDet.stream().filter(p -> p.getCart() == cart).findFirst();
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.te.ecommerce.entity;
 
+import java.io.Serializable;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,10 +11,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
+import javax.validation.constraints.NotEmpty;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 
 @Setter
@@ -20,16 +24,22 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Customer {
+public class Customer implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	@Column(length = 50)
+	
+	@Column(length = 50,nullable = false)
 	private String firstName;
-	@Column(length = 50)
+	
+	@Column(length = 50,nullable = false)
 	private String lastName;
-	@Column(length = 13)
+	
+	@Column(nullable = false)
+	private String password;
+	
+	@Column(length = 13,nullable = false, unique = true)
 	private Long customerPhone;
 
 //	getting foreign key of ShippingAddress in Customer

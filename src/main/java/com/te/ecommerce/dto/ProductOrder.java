@@ -1,5 +1,7 @@
 package com.te.ecommerce.dto;
 
+import javax.validation.constraints.NotNull;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,9 +13,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ProductOrder {
 	
+	@NotNull(message = "id is must")
 	private Integer id;
-	private String manufacturer;
-	private String name;
-	private Double price;
+	
+	@NotNull(message = "enter the quantity")
+	private Integer quantity;
+	
+	@NotNull(message = "customer id is must")
+	private Integer custId;
 
 }

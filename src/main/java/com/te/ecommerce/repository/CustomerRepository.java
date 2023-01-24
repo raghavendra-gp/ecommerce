@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import com.te.ecommerce.entity.Customer;
 
 @Repository
-public interface CustomerRepository extends JpaRepository<Customer,Integer> {
+public interface CustomerRepository extends JpaRepository<Customer, Integer> {
 
 	Integer findByBillingAddressId(Integer id);
 

@@ -8,14 +8,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class AppResponse {
-
-	private boolean error;
-	private String message;
-	private Object data;
-	private Integer status;
+public class EmailDetails {
+	
+	private String recipient;
+	private String msgBody;
+	private String subject;
+	private String attachent;
 
 }
